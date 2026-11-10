@@ -1,0 +1,44 @@
+name: Y86-64 Simulator Autograder
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: y86-simulator-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Run Y86-64 Simulation Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify simulator source exists
+        shell: bash
+        run: |
+          if [[ ! -f "cpu.py" ]]; then
+             echo "::error file=cpu.py::cpu.py is missing from the repository root."
+             exit 1
+          fi
+
+      - name: Run Autograder script
+        shell: bash
+        run: |
+          set -eo pipefail
+          
+          python test.py --bin "python cpu.py"
+          
